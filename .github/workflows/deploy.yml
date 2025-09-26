@@ -1,0 +1,33 @@
+name: CI/CD to Azure VM
+
+on:
+  push:
+    branches:
+      - main   # runs only when you push to main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Copy files to Azure VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_HOST }}
+          username: ${{ secrets.AZURE_USER }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          source: "."
+          target: "/home/${{ secrets.AZURE_USER }}/app"
+
+      - name: Run deployment script on Azure VM
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.AZURE_HOST }}
+          username: ${{ secrets.AZURE_USER }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.AZURE_USER }}/app
+            echo "Deployment successful on $(hostname)"
