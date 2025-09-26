@@ -2,8 +2,8 @@ name: CI/CD to Azure VM
 
 on:
   push:
-    branches:
-      - main   # runs only when you push to main branch
+    branches: [ "main" ]   # runs when you push to main
+  workflow_dispatch:       # allows you to trigger manually
 
 jobs:
   deploy:
@@ -11,23 +11,31 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
+      # Copy files from repo to VM
       - name: Copy files to Azure VM
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v0.1.5
         with:
-          host: ${{ secrets.AZURE_HOST }}
-          username: ${{ secrets.AZURE_USER }}
-          key: ${{ secrets.AZURE_SSH_KEY }}
-          source: "."
-          target: "/home/${{ secrets.AZURE_USER }}/app"
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          source: "."       # copy everything from repo (change if needed)
+          target: "/home/${{ secrets.VM_USERNAME }}/app"
 
+      # Run commands on VM after copy
       - name: Run deployment script on Azure VM
-        uses: appleboy/ssh-action@v0.1.7
+        uses: appleboy/ssh-action@v0.1.8
         with:
-          host: ${{ secrets.AZURE_HOST }}
-          username: ${{ secrets.AZURE_USER }}
-          key: ${{ secrets.AZURE_SSH_KEY }}
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
           script: |
-            cd /home/${{ secrets.AZURE_USER }}/app
-            echo "Deployment successful on $(hostname)"
+            cd /home/${{ secrets.VM_USERNAME }}/app
+            ls -la
+            # Example: restart service if needed
+            # sudo systemctl restart apache2
+            # or for Bitnami:
+            # sudo /opt/bitnami/ctlscript.sh restart
