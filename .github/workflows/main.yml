@@ -1,10 +1,10 @@
-name: CI/CD to Azure VM
+name: Deploy to Azure VM
 
 on:
   push:
     branches:
       - main   # runs whenever you push to main branch
-
+  workflow_dispatch    
 jobs:
   deploy:
     runs-on: ubuntu-latest
